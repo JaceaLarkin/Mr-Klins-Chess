@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>
+      Blast Chess
+    </title>
+    <link rel="stylesheet" href="./css/style.css">
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="top">
+        <div class="brand">
+          <div class="mark">
+            ♞
+          </div>
+          <div>
+            <div class="eyebrow">
+              A volatile chess variant
+            </div>
+            <h1>
+              Blast Chess
+            </h1>
+          </div>
+        </div>
+        <button class="new" id="reset">
+          ↻ &nbsp;New game
+        </button>
+      </header>
+      <div class="layout">
+        <section class="boardcard">
+          <div class="board" id="board" role="grid" aria-label="Chess board">
+            <div class="overlay" id="blastOverlay">
+              <div class="blast">
+                💥
+              </div>
+            </div>
+          </div>
+          <div class="boardfoot">
+            <span>White starts · click a piece, then a square</span><span id="turncount">Move 1</span>
+          </div>
+        </section>
+        <aside class="panel">
+          <section class="card">
+            <div class="turnrow">
+              <i class="dot" id="turnDot"></i>
+              <div>
+                <div class="label">
+                  To move
+                </div>
+                <div class="turn" id="turnText">
+                  White
+                </div>
+              </div>
+            </div>
+            <div class="status" id="status">
+              Choose a piece to see its legal moves.
+            </div>
+            <div class="chance">
+              <span class="label">Explosion chance</span><strong>1 in 5</strong>
+            </div>
+            <div class="meter">
+              <i></i>
+            </div>
+            <div class="sub">
+              Each move has an independent 20% roll.
+            </div>
+          </section>
+          <section class="card history">
+            <h2>
+              Move log
+            </h2>
+            <div class="moves" id="moves">
+              <span class="sub">Moves will appear here.</span>
+            </div>
+          </section>
+          <section class="card play-controls">
+            <h2>
+              Play against
+            </h2>
+            <select id="opponent">
+              <option value="local">
+                Two players · same device
+              </option>
+              <option value="easy">
+                Easy bot
+              </option>
+              <option value="intermediate">
+                Intermediate bot
+              </option>
+              <option value="hard">
+                Hard bot
+              </option>
+              <option value="grandmaster">
+                Grandmaster bot
+              </option>
+            </select>
+            <p class="sub">
+              Choose a bot, then press New game.
+            </p>
+            <div class="online-title">
+              Online multiplayer
+            </div>
+            <button class="online-btn" id="hostRoom">
+              Create room
+            </button>
+            <div class="room-code" id="roomCode">
+            </div>
+            <div class="join-row">
+              <input id="joinCode" placeholder="Paste a room code" autocomplete="off">
+              <button class="online-btn" id="joinRoom">
+                Join
+              </button>
+            </div>
+            <div class="sub" id="roomStatus">
+              For online play, open this page on an HTTPS website.
+            </div>
+          </section>
+          <section class="card rules">
+            <h2>
+              How to play
+            </h2>
+            <p>
+              Play chess: select a piece, then choose a highlighted legal square. Pawns promote to a queen automatically. The two central pawns on each side are Mimics (✦).
+            </p>
+            <p>
+              After every move, there’s a <b>20% chance</b> the moved piece detonates. It and every piece in the eight surrounding squares are removed, regardless of color.
+            </p>
+            <p>
+              A Mimic moves and captures one square in any direction. Moves that leave your king in check are illegal; a blast can still destroy a king. If a king is caught in a blast, that side loses.
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <div class="toast" id="toast">
+    </div>
+    <div class="promotion" id="promotion">
+      <div class="promobox">
+        <h2>
+          Choose your promotion
+        </h2>
+        <div class="promopts" id="promopts">
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
