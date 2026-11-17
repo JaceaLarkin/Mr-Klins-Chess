@@ -128,7 +128,7 @@
               Only a moved Mimic has a <b>20% chance</b> to detonate. A blast removes it and any other non-king pieces in the eight surrounding squares.
             </p>
             <p>
-              A Mimic moves and captures one square in any direction. Moves that leave your king in check are illegal. Kings survive blasts.
+              A Mimic moves and captures one square in any direction. Moves that leave your king in check are illegal. If a player is in check with no legal moves, they lose by checkmate. Kings survive blasts.
             </p>
           </section>
         </aside>
@@ -144,6 +144,14 @@
         <div class="promopts" id="promopts">
         </div>
       </div>
+    </div>
+    <div class="win-screen" id="winScreen" aria-hidden="true">
+      <section class="win-card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+        <div class="win-icon" aria-hidden="true">🏆</div>
+        <p class="win-reason" id="winReason">Checkmate</p>
+        <h2 id="winTitle">White Wins!</h2>
+        <button class="online-btn" id="playAgain">Play again</button>
+      </section>
     </div>
     <script type="module" src="./js/main.js"></script>
   </body>

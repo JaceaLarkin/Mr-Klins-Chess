@@ -183,6 +183,18 @@ export function createUI(state, chess, onMove) {
     setTimeout(() => overlay.classList.remove('show'), 450);
   }
 
+  function showWinner(winner, reason) {
+    $('#winTitle').textContent = winner + ' Wins!';
+    $('#winReason').textContent = reason;
+    $('#winScreen').classList.add('show');
+    $('#winScreen').setAttribute('aria-hidden', 'false');
+  }
+
+  function hideWinner() {
+    $('#winScreen').classList.remove('show');
+    $('#winScreen').setAttribute('aria-hidden', 'true');
+  }
+
   function setRoomStatus(text) {
     $('#roomStatus').textContent = text;
   }
@@ -203,6 +215,8 @@ export function createUI(state, chess, onMove) {
     render,
     say,
     showExplosion,
+    showWinner,
+    hideWinner,
     setRoomStatus,
     setRoomCode,
     setJoinCode,

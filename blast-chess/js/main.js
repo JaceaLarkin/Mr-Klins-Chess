@@ -42,6 +42,7 @@ function init() {
   gameGeneration++;
   state.botThinking = false;
   chess.init();
+  ui.hideWinner();
   ui.render();
   ui.say("Choose a piece to see its legal moves.");
 }
@@ -64,19 +65,29 @@ function finishMove(from, to, promo, note, forcedExplosion = null) {
     forcedExplosion,
     ui.showExplosion
   );
+  const checkmatedSide =
+    !result.deadW &&
+    !result.deadB &&
+    chess.inCheck(state.board, state.turn) &&
+    !chess.hasLegalMove(state.turn)
+      ? state.turn
+      : null;
 
   multiplayer.sendMove(from, to, promo, result.exploded);
 
-  if (result.deadW || result.deadB) state.gameOver = true;
+  if (result.deadW || result.deadB || checkmatedSide) state.gameOver = true;
 
   if (result.deadW || result.deadB) {
+    const winner = result.deadW ? "Black" : "White";
     ui.say(
-      (result.deadW ? "White" : "Black") +
-        " king caught in the blast. " +
-        (result.deadW ? "Black" : "White") +
-        " wins!",
+      (result.deadW ? "White" : "Black") + " king captured. " + winner + " wins!",
       true
     );
+    ui.showWinner(winner, "King captured");
+  } else if (checkmatedSide) {
+    const winner = checkmatedSide === "w" ? "Black" : "White";
+    ui.say(winner + " wins by checkmate!", true);
+    ui.showWinner(winner, "Checkmate");
   } else if (result.exploded) {
     ui.say(
       "💥 BOOM! " +
@@ -158,6 +169,7 @@ $("#opponent").onchange = () => {
 
 $("#hostRoom").onclick = multiplayer.hostOnline;
 $("#joinRoom").onclick = multiplayer.joinOnline;
+$("#playAgain").onclick = () => $("#reset").click();
 
 // ===== Start the initial game =====
 init();

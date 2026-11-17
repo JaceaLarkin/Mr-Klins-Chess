@@ -242,6 +242,18 @@ export function createChess(state) {
     });
   }
 
+  function hasLegalMove(side) {
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (state.board[r][c]?.s === side && getLegal(r, c).length > 0) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   // ===== Move resolution and explosion handling =====
   function resolveMove(from, to, promo, note, forcedExplosion = null, onExplosion = null) {
     const moving = { ...state.board[from[0]][from[1]] };
@@ -305,6 +317,7 @@ export function createChess(state) {
     inCheck,
     apply,
     getLegal,
+    hasLegalMove,
     resolveMove
   };
 }
