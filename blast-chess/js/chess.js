@@ -258,23 +258,19 @@ export function createChess(state) {
     apply(state.board, from, to, promo);
 
     state.lastMove = { from, to };
-    // Synchronized remote moves reuse their recorded roll; local moves keep the 20% roll.
-    const exploded = typeof forcedExplosion === "boolean" ? forcedExplosion : Math.random() < .2;
+    // Only Mimic moves roll for a blast; remote moves reuse their recorded result.
+    const exploded =
+      moving.c === "M" &&
+      (typeof forcedExplosion === "boolean" ? forcedExplosion : Math.random() < .2);
     let removed = 0;
     let deadW = kingCaptured && state.board[to[0]][to[1]]?.s === "w";
     let deadB = kingCaptured && state.board[to[0]][to[1]]?.s === "b";
     if (exploded) {
       const [r, c] = to;
-      // The blast includes the moved piece and all eight neighboring squares.
+      // The blast removes pieces in its 3x3 area, but kings survive it.
       for (let y = Math.max(0, r - 1); y <= Math.min(7, r + 1); y++) {
         for (let x = Math.max(0, c - 1); x <= Math.min(7, c + 1); x++) {
-          if (state.board[y][x]) {
-            if (state.board[y][x].s === "w" && state.board[y][x].c === "K") {
-              deadW = true;
-            }
-            if (state.board[y][x].s === "b" && state.board[y][x].c === "K") {
-              deadB = true;
-            }
+          if (state.board[y][x] && state.board[y][x].c !== "K") {
             state.board[y][x] = null;
             removed++;
           }

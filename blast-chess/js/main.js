@@ -4,6 +4,8 @@ import { createMultiplayer } from "./multiplayer.js";
 import { createUI } from "./ui.js";
 
 const $ = selector => document.querySelector(selector);
+const BOT_MODES = ["easy", "intermediate", "hard", "grandmaster"];
+let gameGeneration = 0;
 
 // ===== Shared game state =====
 const state = {
@@ -37,9 +39,20 @@ const multiplayer = createMultiplayer(state, {
 
 // ===== Initialization and move coordination =====
 function init() {
+  gameGeneration++;
+  state.botThinking = false;
   chess.init();
   ui.render();
   ui.say("Choose a piece to see its legal moves.");
+}
+
+function isBotTurn(generation) {
+  return (
+    generation === gameGeneration &&
+    !state.gameOver &&
+    BOT_MODES.includes(state.gameMode) &&
+    state.turn === state.botSide
+  );
 }
 
 function finishMove(from, to, promo, note, forcedExplosion = null) {
@@ -85,10 +98,22 @@ function finishMove(from, to, promo, note, forcedExplosion = null) {
 
   if (
     !state.gameOver &&
-    ["easy", "intermediate", "hard", "grandmaster"].includes(state.gameMode) &&
+    BOT_MODES.includes(state.gameMode) &&
     state.turn === state.botSide
   ) {
-    setTimeout(() => ai.playBot(finishMove), 180);
+    const generation = gameGeneration;
+
+    setTimeout(() => {
+      if (!isBotTurn(generation)) return;
+
+      ai.playBot(
+        (botFrom, botTo, promo, botNote) => {
+          if (!isBotTurn(generation)) return;
+          finishMove(botFrom, botTo, promo, botNote);
+        },
+        () => isBotTurn(generation)
+      );
+    }, 180);
   }
 }
 

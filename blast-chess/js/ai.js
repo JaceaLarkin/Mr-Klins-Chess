@@ -91,13 +91,16 @@ export function createAI(state, chess) {
   function simulate(m, boom) {
     let [r, c] = m.from;
     let [rr, cc] = m.to;
+    let movedPiece = state.board[r][c];
 
     chess.apply(state.board, [r, c], [rr, cc], 'Q');
 
-    if (boom) {
+    if (boom && movedPiece.c === 'M') {
       for (let y = Math.max(0, rr - 1); y <= Math.min(7, rr + 1); y++) {
         for (let x = Math.max(0, cc - 1); x <= Math.min(7, cc + 1); x++) {
-          state.board[y][x] = null;
+          if (state.board[y][x]?.c !== 'K') {
+            state.board[y][x] = null;
+          }
         }
       }
     }
@@ -206,15 +209,26 @@ export function createAI(state, chess) {
     return best;
   }
 
-  function playBot(onMove) {
+  function playBot(onMove, isCurrent = () => true) {
     if (state.gameOver || state.turn !== state.botSide || state.botThinking) return;
 
     state.botThinking = true;
 
     setTimeout(() => {
-      let m = chooseBotMove(state.gameMode);
-      state.botThinking = false;
-      if (!m) return;
+      if (!isCurrent()) {
+        state.botThinking = false;
+        return;
+      }
+
+      let m;
+
+      try {
+        m = chooseBotMove(state.gameMode);
+      } finally {
+        state.botThinking = false;
+      }
+
+      if (!m || !isCurrent()) return;
 
       let p = state.board[m.from[0]][m.from[1]];
       let q = state.board[m.to[0]][m.to[1]];
