@@ -2,6 +2,9 @@ export function createMultiplayer(
   state,
   { init, applyRemoteMove, applyRemoteTimeout, ui }
 ) {
+  let rematchRequested = false;
+  let incomingRematchTimeControl = null;
+
   // ===== PeerJS loading and room connection setup =====
   function addScript(src) {
     return new Promise((resolve, reject) => {
@@ -20,6 +23,89 @@ export function createMultiplayer(
 
   function statusRoom(text) {
     ui.setRoomStatus(text);
+  }
+
+  function validTimeControl(value) {
+    return ["1", "3", "5", "10"].includes(String(value))
+      ? String(value)
+      : "5";
+  }
+
+  function clearRematchState() {
+    rematchRequested = false;
+    incomingRematchTimeControl = null;
+    ui.setRematchState("idle");
+  }
+
+  function beginRematch(timeControl) {
+    ui.setTimeControl(validTimeControl(timeControl));
+    clearRematchState();
+    init();
+    statusRoom("Rematch started.");
+  }
+
+  function handleRematchMessage(data) {
+    if (
+      state.gameMode !== "online" ||
+      !state.gameOver ||
+      !state.onlineConn?.open
+    ) {
+      return;
+    }
+
+    const timeControl = validTimeControl(data.timeControl);
+
+    if (data.action === "request") {
+      if (rematchRequested) {
+        // If both players request at once, treat that as mutual agreement.
+        state.onlineConn.send({
+          type: "rematch",
+          action: "accepted",
+          timeControl
+        });
+        beginRematch(timeControl);
+      } else {
+        incomingRematchTimeControl = timeControl;
+        ui.setRematchState("incoming");
+        statusRoom("Your opponent requested a rematch.");
+      }
+      return;
+    }
+
+    if (data.action === "accepted" && rematchRequested) {
+      beginRematch(timeControl);
+    }
+  }
+
+  function requestOrAcceptRematch() {
+    if (
+      state.gameMode !== "online" ||
+      !state.gameOver ||
+      !state.onlineConn?.open
+    ) {
+      return false;
+    }
+
+    if (incomingRematchTimeControl !== null) {
+      const timeControl = incomingRematchTimeControl;
+      state.onlineConn.send({
+        type: "rematch",
+        action: "accepted",
+        timeControl
+      });
+      beginRematch(timeControl);
+    } else {
+      rematchRequested = true;
+      ui.setRematchState("requested");
+      statusRoom("Rematch requested. Waiting for your opponent.");
+      state.onlineConn.send({
+        type: "rematch",
+        action: "request",
+        timeControl: validTimeControl(ui.getTimeControl())
+      });
+    }
+
+    return true;
   }
 
   function attachConnection(conn, isHost) {
@@ -61,6 +147,8 @@ export function createMultiplayer(
         init();
       } else if (data.type === "timeout") {
         applyRemoteTimeout(data.losingSide);
+      } else if (data.type === "rematch") {
+        handleRematchMessage(data);
       } else if (data.type === "ready") {
         statusRoom("Opponent joined. You are White.");
       }
@@ -69,6 +157,7 @@ export function createMultiplayer(
     conn.on("close", () => {
       statusRoom("Opponent disconnected.");
       state.onlineConn = null;
+      clearRematchState();
     });
 
     conn.on("error", error => statusRoom("Connection issue: " + error.message));
@@ -164,6 +253,8 @@ export function createMultiplayer(
     joinOnline,
     sendMove,
     sendReset,
-    sendTimeout
+    sendTimeout,
+    requestOrAcceptRematch,
+    clearRematchState
   };
 }

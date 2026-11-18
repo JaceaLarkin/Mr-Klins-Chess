@@ -76,24 +76,28 @@ export function createUI(state, chess, onMove, onBoardActivity = () => {}) {
     $('#turnDot').className = 'dot ' + (state.turn === 'w' ? 'white' : '');
     $('#turncount').textContent = 'Move ' + state.moveNum;
 
-    let m = $('#moves');
-    m.innerHTML = '';
+    const moveLog = $('#moves');
+    moveLog.innerHTML = '';
 
     if (!state.history.length) {
-      m.innerHTML = '<span class="sub">Moves will appear here.</span>';
+      moveLog.innerHTML = '<span class="sub">Moves will appear here.</span>';
     } else {
-      state.history.forEach((x, i) => {
-        let n = document.createElement('span');
-        let a = document.createElement('span');
-        let b = document.createElement('span');
+      // Each completed turn is stored as two plies; pair them into one row.
+      for (let ply = 0; ply < state.history.length; ply += 2) {
+        const whiteMove = state.history[ply]?.white || '';
+        const blackMove = state.history[ply + 1]?.black || '';
+        const moveNumber = document.createElement('span');
+        const whiteCell = document.createElement('span');
+        const blackCell = document.createElement('span');
 
-        if (i % 2 === 0) n.textContent = (i / 2 + 1) + '.';
-        else n.textContent = '';
+        moveNumber.textContent = (Math.floor(ply / 2) + 1) + '.';
+        whiteCell.textContent = whiteMove;
+        blackCell.textContent = blackMove;
+        moveLog.append(moveNumber, whiteCell, blackCell);
+      }
 
-        a.textContent = x.white || '';
-        b.textContent = x.black || '';
-        m.append(n, a, b);
-      });
+      // Keep the most recent move visible while retaining scrollback for review.
+      moveLog.scrollTop = moveLog.scrollHeight;
     }
   }
 
@@ -206,8 +210,26 @@ export function createUI(state, chess, onMove, onBoardActivity = () => {}) {
   function showWinner(winner, reason) {
     $('#winTitle').textContent = winner + ' Wins!';
     $('#winReason').textContent = reason;
+    setRematchState('idle');
     $('#winScreen').classList.add('show');
     $('#winScreen').setAttribute('aria-hidden', 'false');
+  }
+
+  function setRematchState(status) {
+    const button = $('#playAgain');
+    const reason = $('#winReason');
+
+    button.disabled = status === 'requested';
+
+    if (status === 'requested') {
+      button.textContent = 'Waiting for opponent…';
+      reason.textContent = 'Waiting for the other player to respond';
+    } else if (status === 'incoming') {
+      button.textContent = 'Accept rematch';
+      reason.textContent = 'Your opponent wants to play again';
+    } else {
+      button.textContent = state.gameMode === 'online' ? 'Request rematch' : 'Play again';
+    }
   }
 
   function hideWinner() {
@@ -248,6 +270,7 @@ export function createUI(state, chess, onMove, onBoardActivity = () => {}) {
     showExplosion,
     showWinner,
     hideWinner,
+    setRematchState,
     setRoomStatus,
     setRoomCode,
     setJoinCode,

@@ -227,6 +227,7 @@ function init() {
   resetClocks();
   $("#timeControl").disabled = state.gameMode === "online";
   ui.hideWinner();
+  multiplayer.clearRematchState();
   ui.render();
   ui.say("Choose a piece to see its legal moves.");
 }
@@ -418,7 +419,14 @@ $("#timeControl").onchange = () => {
 
 $("#hostRoom").onclick = multiplayer.hostOnline;
 $("#joinRoom").onclick = multiplayer.joinOnline;
-$("#playAgain").onclick = () => $("#reset").click();
+$("#playAgain").onclick = () => {
+  if (state.gameMode === "online" && state.onlineConn?.open) {
+    multiplayer.requestOrAcceptRematch();
+    return;
+  }
+
+  $("#reset").click();
+};
 
 // ===== Start the initial game =====
 init();
