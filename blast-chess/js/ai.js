@@ -10,6 +10,7 @@ const VAL = {
 const MATE_SCORE = 1_000_000;
 const CHECK_MOVE_BONUS = 30_000;
 const BLAST_CHECK_BONUS = 20_000;
+const GRANDMASTER_STOCKFISH_MOVE_TIME_MS = 5_000;
 
 export function createAI(state, chess, ui = null) {
   // Stockfish 19.0.1 Lite, single-threaded WebAssembly build (GPL-3.0).
@@ -152,7 +153,9 @@ export function createAI(state, chess, ui = null) {
       try {
         worker.postMessage("ucinewgame");
         worker.postMessage(`position fen ${fen}`);
-        worker.postMessage(`go movetime 2500 searchmoves ${searchMoves}`);
+        worker.postMessage(
+          `go movetime ${GRANDMASTER_STOCKFISH_MOVE_TIME_MS} searchmoves ${searchMoves}`
+        );
       } catch (error) {
         clearTimeout(timeoutId);
         pendingStockfishMove = null;
@@ -330,6 +333,23 @@ export function createAI(state, chess, ui = null) {
       let safe = search(depth - 1, alpha, beta, ply + 1, mateAware);
       restore(base);
 
+      // Non-Mimic moves cannot explode, so their score is just the safe line.
+      // Avoid searching the identical position a second time.
+      if (movingPiece.c !== 'M') {
+        let v = safe;
+
+        if (maximizing) {
+          best = Math.max(best, v);
+          alpha = Math.max(alpha, best);
+        } else {
+          best = Math.min(best, v);
+          beta = Math.min(beta, best);
+        }
+
+        if (beta <= alpha) break;
+        continue;
+      }
+
       simulate(m, true);
       let blown = terminalScore(mateAware, ply + 1);
 
@@ -389,6 +409,9 @@ export function createAI(state, chess, ui = null) {
     const safe = search(depth - 1, alpha, Infinity, 1, mateAware);
     restore(base);
 
+    // Only Mimic moves can explode; other pieces have no second outcome branch.
+    if (movingPiece.c !== 'M') return safe;
+
     simulate(move, true);
     let blown = terminalScore(mateAware, 1);
 
@@ -426,7 +449,7 @@ export function createAI(state, chess, ui = null) {
       const orderedMoves = moves
         .map(move => ({ move, score: moveOrder(move) }))
         .sort((a, b) => b.score - a.score);
-      const selectedMoves = orderedMoves.slice(0, 18).map(entry => entry.move);
+      const selectedMoves = orderedMoves.slice(0, 24).map(entry => entry.move);
 
       // Keep every checking option in the candidate set, including quiet mates.
       for (const entry of orderedMoves) {
