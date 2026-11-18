@@ -1,7 +1,9 @@
-Stockfish 19.0.1 browser engine assets
+Stockfish 19.0.1 Lite browser engine assets
 
-These files are the full, single-threaded WebAssembly build from Stockfish.js
-19.0.1. The engine is licensed under GPL-3.0; see Copying.txt.
+These files are the single-threaded Lite WebAssembly build from Stockfish.js
+19.0.1 (about 1.7 MB for the JavaScript and WebAssembly files together). The
+Lite network is smaller and weaker than the full build. The engine is licensed
+under GPL-3.0; see Copying.txt.
 
 Stockfish.js release:
 https://github.com/nmrugg/stockfish.js/releases/tag/v19.0.1

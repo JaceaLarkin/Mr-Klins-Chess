@@ -281,18 +281,31 @@ body {
   color: var(--muted);
   margin-top: 6px
 }
-.rules h2,.history h2 {
+.rules h2,.history h2,.credits h2 {
   font: 700 17px Georgia,serif;
   margin: 0 0 12px
 }
-.rules p {
+.rules p,.credits p {
   font-size: 13px;
   line-height: 1.55;
   color: #56635a;
   margin: 0 0 10px
 }
-.rules p:last-child {
+.rules p:last-child,.credits p:last-child {
   margin: 0
+}
+.credits a {
+  color: var(--green2);
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px
+}
+.credits a:hover {
+  color: var(--red)
+}
+.credits a:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px
 }
 .history {
   min-height: 120px
@@ -522,7 +535,7 @@ body {
   .card {
     padding: 14px
   }
-  .rules {
+  .rules,.credits {
     grid-column: span 2
   }
   .boardfoot {
@@ -536,7 +549,7 @@ body {
   .panel {
     grid-template-columns: 1fr
   }
-  .rules {
+  .rules,.credits {
     grid-column: auto
   }
   .wrap {

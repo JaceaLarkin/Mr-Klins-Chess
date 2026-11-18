@@ -12,7 +12,7 @@ const CHECK_MOVE_BONUS = 30_000;
 const BLAST_CHECK_BONUS = 20_000;
 
 export function createAI(state, chess, ui = null) {
-  // Stockfish 19.0.1, full single-threaded WebAssembly build (GPL-3.0).
+  // Stockfish 19.0.1 Lite, single-threaded WebAssembly build (GPL-3.0).
   let stockfishWorker = null;
   let stockfishReady = null;
   let pendingStockfishMove = null;
@@ -24,7 +24,7 @@ export function createAI(state, chess, ui = null) {
     stockfishReady = new Promise((resolve, reject) => {
       let ready = false;
       const worker = new Worker(
-        new URL("./stockfish/stockfish-19-single.js", import.meta.url)
+        new URL("./stockfish/stockfish-19-lite-single.js", import.meta.url)
       );
       stockfishWorker = worker;
 
