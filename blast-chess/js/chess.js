@@ -255,7 +255,15 @@ export function createChess(state) {
   }
 
   // ===== Move resolution and explosion handling =====
-  function resolveMove(from, to, promo, note, forcedExplosion = null, onExplosion = null) {
+  function resolveMove(
+    from,
+    to,
+    promo,
+    note,
+    forcedExplosion = null,
+    onExplosion = null,
+    forcedGameEndingExplosion = null
+  ) {
     const moving = { ...state.board[from[0]][from[1]] };
     const wasEp =
       moving.c === "P" &&
@@ -291,6 +299,13 @@ export function createChess(state) {
       if (onExplosion) onExplosion();
       note += " 💥";
     }
+    // A rare game-ending roll only happens after a Mimic's normal explosion.
+    const gameEndingExplosion =
+      exploded &&
+      (typeof forcedGameEndingExplosion === "boolean"
+        ? forcedGameEndingExplosion
+        : Math.random() < 1 / 50);
+    if (gameEndingExplosion) note += " ☢️";
     state.history.push(
       state.turn === "w"
         ? { white: note, black: "" }
@@ -303,7 +318,7 @@ export function createChess(state) {
     state.moveNum = state.turn === "w" ? state.moveNum + 1 : state.moveNum;
     state.selected = null;
     state.legal = [];
-    return { deadW, deadB, exploded, removed };
+    return { deadW, deadB, exploded, gameEndingExplosion, removed };
   }
 
   return {

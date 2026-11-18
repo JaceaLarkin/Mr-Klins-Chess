@@ -56,14 +56,23 @@ function isBotTurn(generation) {
   );
 }
 
-function finishMove(from, to, promo, note, forcedExplosion = null) {
+function finishMove(
+  from,
+  to,
+  promo,
+  note,
+  forcedExplosion = null,
+  forcedGameEndingExplosion = null
+) {
+  const movingSide = state.turn;
   const result = chess.resolveMove(
     from,
     to,
     promo,
     note,
     forcedExplosion,
-    ui.showExplosion
+    ui.showExplosion,
+    forcedGameEndingExplosion
   );
   const checkmatedSide =
     !result.deadW &&
@@ -73,11 +82,23 @@ function finishMove(from, to, promo, note, forcedExplosion = null) {
       ? state.turn
       : null;
 
-  multiplayer.sendMove(from, to, promo, result.exploded);
+  multiplayer.sendMove(
+    from,
+    to,
+    promo,
+    result.exploded,
+    result.gameEndingExplosion
+  );
 
-  if (result.deadW || result.deadB || checkmatedSide) state.gameOver = true;
+  state.gameOver = Boolean(
+    result.gameEndingExplosion || result.deadW || result.deadB || checkmatedSide
+  );
 
-  if (result.deadW || result.deadB) {
+  if (result.gameEndingExplosion) {
+    const winner = movingSide === "w" ? "White" : "Black";
+    ui.say("☢️ Rare Mimic explosion! " + winner + " wins!", true);
+    ui.showWinner(winner, "Rare explosion");
+  } else if (result.deadW || result.deadB) {
     const winner = result.deadW ? "Black" : "White";
     ui.say(
       (result.deadW ? "White" : "Black") + " king captured. " + winner + " wins!",
@@ -137,7 +158,14 @@ function applyRemoteMove(data) {
     (captured ? "x" : "–") +
     chess.sqName(...data.to);
 
-  finishMove(data.from, data.to, data.promo || "Q", note, !!data.exploded);
+  finishMove(
+    data.from,
+    data.to,
+    data.promo || "Q",
+    note,
+    !!data.exploded,
+    !!data.gameEndingExplosion
+  );
 }
 
 // ===== Game selection and controls =====

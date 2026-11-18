@@ -119,14 +119,15 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
   }
 
   // ===== Move and reset synchronization =====
-  function sendMove(from, to, promo, exploded) {
+  function sendMove(from, to, promo, exploded, gameEndingExplosion) {
     if (state.gameMode === "online" && state.onlineConn && state.onlineConn.open && !state.remoteApplying) {
       state.onlineConn.send({
         type: "move",
         from,
         to,
         promo,
-        exploded
+        exploded,
+        gameEndingExplosion
       });
     }
   }

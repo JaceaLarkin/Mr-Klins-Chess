@@ -87,6 +87,14 @@ export function createAI(state, chess) {
     return null;
   }
 
+  // Mimic moves can also award an instant win on 1 in 50 normal blasts.
+  function expectedMoveScore(safeScore, blastScore, movingPiece) {
+    if (movingPiece.c !== 'M') return safeScore;
+
+    const rareOutcomeScore = movingPiece.s === state.botSide ? 100000 : -100000;
+    return safeScore * 0.8 + blastScore * 0.2 * 0.98 + rareOutcomeScore * 0.2 * 0.02;
+  }
+
   // ===== Minimax search with alpha-beta pruning =====
   function simulate(m, boom) {
     let [r, c] = m.from;
@@ -121,6 +129,7 @@ export function createAI(state, chess) {
 
     for (const m of moves) {
       let base = snapshot();
+      const movingPiece = state.board[m.from[0]][m.from[1]];
 
       simulate(m, false);
       let safe = search(depth - 1, alpha, beta);
@@ -135,7 +144,7 @@ export function createAI(state, chess) {
 
       restore(base);
 
-      let v = safe * .8 + blown * .2;
+      let v = expectedMoveScore(safe, blown, movingPiece);
 
       if (maximizing) {
         best = Math.max(best, v);
@@ -179,6 +188,7 @@ export function createAI(state, chess) {
 
     for (const m of moves) {
       let base = snapshot();
+      const movingPiece = state.board[m.from[0]][m.from[1]];
 
       simulate(m, false);
       let safe = search(depth - 1, alpha, Infinity);
@@ -194,8 +204,7 @@ export function createAI(state, chess) {
       restore(base);
 
       let score =
-        safe * .8 +
-        boom * .2 +
+        expectedMoveScore(safe, boom, movingPiece) +
         (Math.random() - .5) * (level === 'intermediate' ? 28 : level === 'hard' ? 5 : 1);
 
       if (score > bestScore) {
