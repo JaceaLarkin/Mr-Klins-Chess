@@ -1,4 +1,7 @@
-export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
+export function createMultiplayer(
+  state,
+  { init, applyRemoteMove, applyRemoteTimeout, ui }
+) {
   // ===== PeerJS loading and room connection setup =====
   function addScript(src) {
     return new Promise((resolve, reject) => {
@@ -29,8 +32,12 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
     conn.on("open", () => {
       statusRoom(isHost ? "Room ready. Share your room code with the other player." : "Connected! You are Black.");
 
-      if (isHost) conn.send({ type: "start" });
-      else conn.send({ type: "ready" });
+      if (isHost) {
+        init();
+        conn.send({ type: "start", timeControl: ui.getTimeControl() });
+      } else {
+        conn.send({ type: "ready" });
+      }
     });
 
     conn.on("data", data => {
@@ -39,14 +46,21 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
       if (
         data.type === "move" &&
         state.gameMode === "online" &&
+        !state.gameOver &&
         state.turn !== state.mySide &&
         state.board[data.from?.[0]]?.[data.from?.[1]]?.s === state.turn
       ) {
         state.remoteApplying = true;
         applyRemoteMove(data);
         state.remoteApplying = false;
-      } else if (data.type === "reset") {
+      } else if (data.type === "start") {
+        ui.setTimeControl(data.timeControl);
         init();
+      } else if (data.type === "reset") {
+        ui.setTimeControl(data.timeControl);
+        init();
+      } else if (data.type === "timeout") {
+        applyRemoteTimeout(data.losingSide);
       } else if (data.type === "ready") {
         statusRoom("Opponent joined. You are White.");
       }
@@ -119,7 +133,7 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
   }
 
   // ===== Move and reset synchronization =====
-  function sendMove(from, to, promo, exploded, gameEndingExplosion) {
+  function sendMove(from, to, promo, exploded, gameEndingExplosion, clock) {
     if (state.gameMode === "online" && state.onlineConn && state.onlineConn.open && !state.remoteApplying) {
       state.onlineConn.send({
         type: "move",
@@ -127,14 +141,21 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
         to,
         promo,
         exploded,
-        gameEndingExplosion
+        gameEndingExplosion,
+        clock
       });
     }
   }
 
-  function sendReset() {
+  function sendReset(timeControl) {
     if (state.onlineConn && state.onlineConn.open) {
-      state.onlineConn.send({ type: "reset" });
+      state.onlineConn.send({ type: "reset", timeControl });
+    }
+  }
+
+  function sendTimeout(losingSide) {
+    if (state.onlineConn && state.onlineConn.open) {
+      state.onlineConn.send({ type: "timeout", losingSide });
     }
   }
 
@@ -142,6 +163,7 @@ export function createMultiplayer(state, { init, applyRemoteMove, ui }) {
     hostOnline,
     joinOnline,
     sendMove,
-    sendReset
+    sendReset,
+    sendTimeout
   };
 }

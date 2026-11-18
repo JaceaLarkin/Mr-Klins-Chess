@@ -54,6 +54,17 @@
                 </div>
               </div>
             </div>
+            <div class="clocks" aria-label="Player clocks">
+              <div class="clock" id="whiteClock">
+                <span>White</span>
+                <strong id="whiteTime">05:00</strong>
+              </div>
+              <div class="clock" id="blackClock">
+                <span>Black</span>
+                <strong id="blackTime">05:00</strong>
+              </div>
+            </div>
+            <div class="sub">The active clock switches each move; reaching zero loses.</div>
             <div class="status" id="status">
               Choose a piece to see its legal moves.
             </div>
@@ -76,6 +87,16 @@
             </div>
           </section>
           <section class="card play-controls">
+            <label class="control-label" for="timeControl">
+              Time control
+            </label>
+            <select id="timeControl">
+              <option value="1">1 minute</option>
+              <option value="3">3 minutes</option>
+              <option value="5" selected>5 minutes</option>
+              <option value="10">10 minutes</option>
+            </select>
+            <p class="sub">Choose a time before the first move.</p>
             <h2>
               Play against
             </h2>

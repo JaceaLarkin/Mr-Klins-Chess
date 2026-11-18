@@ -12,7 +12,7 @@ const ICON = {
 
 const $ = selector => document.querySelector(selector);
 
-export function createUI(state, chess, onMove) {
+export function createUI(state, chess, onMove, onBoardActivity = () => {}) {
   // ===== Board and move-history rendering =====
   function render() {
     const el = $('#board');
@@ -109,11 +109,31 @@ export function createUI(state, chess, onMove) {
     })[c];
   }
 
+  function renderClocks(remaining, activeSide) {
+    const clocks = [
+      { side: 'w', container: $('#whiteClock'), display: $('#whiteTime') },
+      { side: 'b', container: $('#blackClock'), display: $('#blackTime') }
+    ];
+
+    for (const clock of clocks) {
+      const seconds = Math.ceil(Math.max(0, remaining[clock.side]) / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const remainder = seconds % 60;
+
+      clock.display.textContent =
+        String(minutes).padStart(2, '0') + ':' + String(remainder).padStart(2, '0');
+      clock.container.classList.toggle('active', activeSide === clock.side);
+      clock.container.classList.toggle('low', remaining[clock.side] <= 10000);
+    }
+  }
+
   // ===== Selection, legal moves, and promotions =====
   function click(r, c) {
     if (state.gameOver || state.botThinking) return;
     if (state.gameMode === 'online' && state.turn !== state.mySide) return;
     if (['easy', 'intermediate', 'hard', 'grandmaster'].includes(state.gameMode) && state.turn === state.botSide) return;
+
+    onBoardActivity();
 
     let p = state.board[r][c];
 
@@ -211,8 +231,19 @@ export function createUI(state, chess, onMove) {
     return $('#joinCode').value;
   }
 
+  function getTimeControl() {
+    return $('#timeControl').value;
+  }
+
+  function setTimeControl(value) {
+    if (['1', '3', '5', '10'].includes(String(value))) {
+      $('#timeControl').value = String(value);
+    }
+  }
+
   return {
     render,
+    renderClocks,
     say,
     showExplosion,
     showWinner,
@@ -220,6 +251,8 @@ export function createUI(state, chess, onMove) {
     setRoomStatus,
     setRoomCode,
     setJoinCode,
-    getJoinCode
+    getJoinCode,
+    getTimeControl,
+    setTimeControl
   };
 }

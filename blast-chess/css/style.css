@@ -206,6 +206,38 @@ body {
   font: 700 20px Georgia,serif;
   margin-top: 2px
 }
+.clocks {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 16px
+}
+.clock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e4dece;
+  border-radius: 10px;
+  background: #f5f2e9
+}
+.clock span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700
+}
+.clock strong {
+  font: 700 18px ui-monospace,SFMono-Regular,Consolas,monospace;
+  font-variant-numeric: tabular-nums
+}
+.clock.active {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold)
+}
+.clock.low strong {
+  color: var(--red)
+}
 .status {
   margin-top: 16px;
   border-radius: 10px;
@@ -287,6 +319,18 @@ body {
 .play-controls h2 {
   font: 700 17px Georgia,serif;
   margin: 0 0 12px
+}
+.control-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase
+}
+.play-controls .control-label + select + .sub {
+  margin-bottom: 16px
 }
 .play-controls select,.join-row input {
   width: 100%;
